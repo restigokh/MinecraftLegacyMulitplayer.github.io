@@ -1,60 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LCE Restoration</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=VT323&display=swap" rel="stylesheet">
-    <style>
-        :root { --mc-green: #3C8527; --mc-border: #212121; }
-        body { background: #121212; font-family: 'Inter', sans-serif; }
-        .dirt-bg {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                        url('https://www.minecraft.net/content/dam/archive/663e8a7c2936746f6312.png');
-            background-repeat: repeat; background-size: 64px; image-rendering: pixelated;
-        }
-        .glass-panel {
-            background: rgba(45, 45, 45, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .lce-btn {
-            font-family: 'VT323', monospace;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 0 #1E4314;
-        }
-        .lce-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #1E4314; brightness: 1.1; }
-        .lce-btn:active { transform: translateY(2px); box-shadow: 0 0px 0 #1E4314; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LCEMP — Minecraft Legacy Console Multiplayer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --dirt:      #5c3d1e;
+      --grass:     #5a8a2f;
+      --stone:     #898989;
+      --sky:       #87ceeb;
+      --deep:      #0a0e1a;
+      --gold:      #ffd700;
+      --emerald:   #50c878;
+      --lava:      #ff6a00;
+      --btn-green: #4caf50;
+      --btn-dark:  #2e7d32;
+      --text:      #f0e6cc;
+      --shadow:    rgba(0,0,0,0.7);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Starfield ── */
+    .stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 40%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 8%,  #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 55%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 72% 20%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 70%, #fff 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 5% 80%, #fff 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 38% 90%, #fff 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 90% 5%,  #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 35%, rgba(255,255,200,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 60%, rgba(255,255,200,0.8) 0%, transparent 100%);
+    }
+
+    /* ── Pixel terrain at bottom ── */
+    .terrain {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 90px; z-index: 1; pointer-events: none;
+      display: flex; align-items: flex-end;
+    }
+    .terrain-block {
+      flex: 1; height: 32px;
+      image-rendering: pixelated;
+    }
+    .terrain-block:nth-child(odd)  { background: var(--grass); height: 32px; }
+    .terrain-block:nth-child(even) { background: var(--grass); height: 24px; }
+    .terrain-block::after {
+      content: ''; display: block; height: 16px;
+      background: var(--dirt);
+    }
+
+    /* ── Floating pixel particles ── */
+    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .pixel {
+      position: absolute;
+      width: 4px; height: 4px;
+      image-rendering: pixelated;
+      animation: floatup linear infinite;
+      opacity: 0;
+    }
+    @keyframes floatup {
+      0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+      10%  { opacity: 0.8; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-60vh) rotate(180deg); opacity: 0; }
+    }
+
+    /* ── Layout ── */
+    main {
+      position: relative; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem 6rem;
+      gap: 2rem;
+    }
+
+    /* ── Logo block ── */
+    .logo-block {
+      text-align: center;
+      animation: dropin 0.9s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes dropin {
+      from { transform: translateY(-40px) scale(0.8); opacity: 0; }
+      to   { transform: translateY(0)     scale(1);   opacity: 1; }
+    }
+
+    .logo-eyebrow {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.45rem, 1.2vw, 0.65rem);
+      letter-spacing: 0.25em;
+      color: var(--emerald);
+      text-shadow: 0 0 12px var(--emerald);
+      margin-bottom: 0.75rem;
+    }
+
+    .logo-main {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(1.4rem, 5vw, 2.8rem);
+      line-height: 1.4;
+      color: var(--gold);
+      text-shadow:
+        4px 4px 0 #7a5200,
+        0 0 30px rgba(255,215,0,0.4);
+      letter-spacing: 0.04em;
+    }
+
+    .logo-sub {
+      font-family: 'VT323', monospace;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      color: var(--sky);
+      letter-spacing: 0.2em;
+      margin-top: 0.5rem;
+      text-shadow: 0 0 10px rgba(135,206,235,0.6);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: rgba(10,14,26,0.88);
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: rgba(255,255,255,0.18);
+      border-radius: 4px;
+      padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 5vw, 3.5rem);
+      max-width: 640px; width: 100%;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 20px 60px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      animation: fadein 1s 0.3s both;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(76,175,80,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .version-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(80,200,120,0.15);
+      border: 1px solid rgba(80,200,120,0.4);
+      border-radius: 2px;
+      padding: 0.25rem 0.7rem;
+      font-family: 'VT323', monospace;
+      font-size: 1.1rem;
+      color: var(--emerald);
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+    .version-badge::before {
+      content: '▶';
+      font-size: 0.7rem;
+    }
+
+    .card-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.7rem, 2vw, 0.95rem);
+      color: #fff;
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .card-desc {
+      font-size: clamp(0.9rem, 2vw, 1rem);
+      color: rgba(240,230,204,0.75);
+      line-height: 1.7;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Features ── */
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+    .feat {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'VT323', monospace;
+      font-size: 1.15rem;
+      color: rgba(240,230,204,0.8);
+    }
+    .feat-icon {
+      width: 18px; height: 18px;
+      image-rendering: pixelated;
+      flex-shrink: 0;
+    }
+    .feat-icon.green  { background: var(--emerald); }
+    .feat-icon.blue   { background: var(--sky); }
+    .feat-icon.gold   { background: var(--gold); }
+    .feat-icon.red    { background: #e53935; }
+
+    /* ── Download button ── */
+    .btn-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+    }
+
+    .btn-download {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.75rem;
+      background: var(--btn-green);
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+      padding: 1rem 2.25rem;
+      border-radius: 3px;
+      border-bottom: 4px solid var(--btn-dark);
+      border-right: 4px solid var(--btn-dark);
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+      box-shadow:
+        0 0 20px rgba(76,175,80,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: transform 0.1s, box-shadow 0.15s, filter 0.15s;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .btn-download:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 36px rgba(76,175,80,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+    .btn-download:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px; border-right-width: 2px;
+    }
+
+    .dl-icon {
+      display: inline-block;
+      width: 20px; height: 20px;
+      position: relative;
+    }
+    .dl-icon::before {
+      content: '↓';
+      font-family: 'VT323', monospace;
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .btn-note {
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      color: rgba(240,230,204,0.45);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      margin: 1.75rem 0;
+    }
+
+    /* ── Requirements ── */
+    .req-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: rgba(240,230,204,0.5);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.6rem;
+    }
+    .req-list {
+      list-style: none;
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .req-list li {
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      color: rgba(240,230,204,0.55);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 2px;
+      padding: 0.15rem 0.55rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 10;
+      text-align: center;
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      color: rgba(240,230,204,0.3);
+      padding: 1rem;
+      letter-spacing: 0.1em;
+    }
+    footer a {
+      color: rgba(80,200,120,0.55);
+      text-decoration: none;
+    }
+    footer a:hover { color: var(--emerald); }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .features { grid-template-columns: 1fr; }
+      .btn-download { padding: 0.85rem 1.5rem; }
+    }
+  </style>
 </head>
-<body class="dirt-bg min-h-screen flex items-center justify-center p-6">
+<body>
 
-    <div class="max-w-md w-full glass-panel rounded-2xl p-8 shadow-2xl text-center">
-        <h1 class="text-3xl font-bold tracking-tight text-white mb-2 uppercase italic">LCE <span class="text-green-500">Restoration</span></h1>
-        <p class="text-gray-400 text-sm mb-8">2014 Multiplayer Architecture & Source</p>
+<div class="stars"></div>
+<div class="particles" id="particles"></div>
 
-        <div class="inline-flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full mb-8 border border-white/5">
-            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span class="text-[10px] font-bold text-green-400 tracking-widest uppercase">14 Lobbies Active</span>
-        </div>
+<main>
 
-        <div class="space-y-4">
-            <a href="https://github.com/YourUsername/YourRepo/archive/refs/heads/main.zip" 
-               class="lce-btn block w-full bg-[#3C8527] text-white py-4 rounded-lg text-2xl no-underline">
-                LATEST MULTIPLAYER SOURCE
-            </a>
-            
-            <div class="flex justify-between items-center text-[10px] text-gray-500 font-mono px-2 uppercase tracking-tighter">
-                <span>Verified: LCMP Protocol</span>
-                <span>Pass: fuckanon</span>
-            </div>
-        </div>
+  <!-- Logo -->
+  <div class="logo-block">
+    <p class="logo-eyebrow">⛏ COMMUNITY PROJECT ⛏</p>
+    <h1 class="logo-main">MINECRAFT<br>LEGACY CONSOLE</h1>
+    <p class="logo-sub">MULTIPLAYER EDITION</p>
+  </div>
 
-        <div class="mt-10 pt-6 border-t border-white/10">
-            <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em]">Project Hub & Community Archive</p>
-        </div>
+  <!-- Card -->
+  <div class="card">
+    <div class="version-badge">Latest Build — Windows 64-bit</div>
+    <h2 class="card-title">Play the classic console experience<br>with friends — for free.</h2>
+    <p class="card-desc">
+      LCEMP is a community fork of Minecraft Legacy Console Edition that restores
+      LAN &amp; online multiplayer, adds full PC compatibility, keyboard + mouse
+      support, and more. Relive the couch co-op era with anyone, anywhere.
+    </p>
+
+    <div class="features">
+      <div class="feat"><span class="feat-icon green"></span> LAN Multiplayer</div>
+      <div class="feat"><span class="feat-icon blue"></span> Keyboard &amp; Mouse</div>
+      <div class="feat"><span class="feat-icon gold"></span> Original TU19 Content</div>
+      <div class="feat"><span class="feat-icon green"></span> IP Direct Connect</div>
+      <div class="feat"><span class="feat-icon blue"></span> Fullscreen (F11)</div>
+      <div class="feat"><span class="feat-icon red"></span> Windows 64-bit</div>
     </div>
 
+    <div class="btn-wrap">
+      <a
+        class="btn-download"
+        href="https://github.com/LCEMP/LCEMP/releases/latest"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span class="dl-icon"></span>
+        DOWNLOAD LATEST
+      </a>
+      <span class="btn-note">Opens GitHub Releases → download .zip</span>
+    </div>
+
+    <hr class="divider"/>
+
+    <p class="req-title">REQUIREMENTS</p>
+    <ul class="req-list">
+      <li>Windows 10 / 11</li>
+      <li>64-bit CPU</li>
+      <li>Your own game assets</li>
+      <li>~500 MB disk</li>
+    </ul>
+  </div>
+
+</main>
+
+<!-- Pixel terrain -->
+<div class="terrain" id="terrain"></div>
+
+<footer>
+  Not affiliated with Mojang or Microsoft &nbsp;·&nbsp;
+  <a href="https://github.com/LCEMP/LCEMP" target="_blank" rel="noopener">View on GitHub</a>
+</footer>
+
+<script>
+  /* Generate pixel terrain blocks */
+  const t = document.getElementById('terrain');
+  for (let i = 0; i < 64; i++) {
+    const b = document.createElement('div');
+    b.className = 'terrain-block';
+    b.style.height = (24 + Math.floor(Math.random() * 20)) + 'px';
+    const colours = ['#5a8a2f','#4a7a22','#6a9a3f'];
+    b.style.background = colours[Math.floor(Math.random() * colours.length)];
+    b.style.setProperty('--dirt-h', (14 + Math.floor(Math.random() * 6)) + 'px');
+    t.appendChild(b);
+  }
+
+  /* Floating pixel dust */
+  const colours = ['#5a8a2f','#ffd700','#50c878','#87ceeb','#898989','#5c3d1e'];
+  const p = document.getElementById('particles');
+  for (let i = 0; i < 28; i++) {
+    const px = document.createElement('div');
+    px.className = 'pixel';
+    px.style.left  = Math.random() * 100 + 'vw';
+    px.style.bottom = Math.random() * 30 + 'vh';
+    px.style.background = colours[Math.floor(Math.random() * colours.length)];
+    px.style.animationDuration  = (6 + Math.random() * 10) + 's';
+    px.style.animationDelay     = (Math.random() * 8) + 's';
+    px.style.width = px.style.height = (Math.random() > 0.5 ? 4 : 6) + 'px';
+    p.appendChild(px);
+  }
+</script>
 </body>
 </html>
