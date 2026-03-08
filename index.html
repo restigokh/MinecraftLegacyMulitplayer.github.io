@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCE Restoration Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'VT323', monospace; background-color: #212121; }
+        .dirt-bg {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://www.minecraft.net/content/dam/archive/663e8a7c2936746f6312.png');
+            background-repeat: repeat; background-size: 64px; image-rendering: pixelated;
+        }
+        .btn-lce {
+            background: #8B8B8B; border: 4px solid #000;
+            box-shadow: inset 3px 3px 0 #DEDEDE, inset -3px -3px 0 #373737;
+            transition: all 0.1s;
+        }
+        .btn-lce:active {
+            transform: translateY(2px);
+            box-shadow: inset 3px 3px 0 #373737, inset -3px -3px 0 #DEDEDE;
+        }
+        .btn-green {
+            background: #3C8527;
+            box-shadow: inset 3px 3px 0 #5DB83A, inset -3px -3px 0 #1E4314;
+        }
+    </style>
+</head>
+<body class="dirt-bg min-h-screen text-white flex flex-col items-center py-10 px-4">
+
+    <nav class="flex border-b-4 border-[#212121] mb-0">
+        <div class="btn-lce px-8 py-2 bg-[#8B8B8B]">HOME</div>
+        <div class="btn-lce px-8 py-2 opacity-60">SOURCE</div>
+    </nav>
+
+    <main class="max-w-3xl w-full bg-[#484848] border-x-4 border-b-4 border-[#212121] p-8 shadow-2xl">
+        <h1 class="text-5xl text-center mb-8 drop-shadow-lg">LCE RESTORATION</h1>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <h2 class="text-2xl text-yellow-400">DOWNLOADS</h2>
+                <p class="text-gray-300">Get the latest LCMP-enabled build and restoration source code.</p>
+                <a href="YOUR_GITHUB_LINK_HERE" class="btn-lce btn-green block text-center py-4 text-2xl no-underline text-white">
+                    DOWNLOAD SOURCE
+                </a>
+                <p class="text-xs text-gray-400 italic text-center">Archive Password: fuckanon</p>
+            </div>
+
+            <div class="bg-black/40 p-4 border-2 border-black">
+                <h3 class="text-green-400 mb-2 underline">MULTIPLAYER STATUS</h3>
+                <p>Lobbies: 14 Active</p>
+                <p>Version: 2014 Legacy</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 max-w-3xl w-full">
+        <div class="btn-lce text-center py-2 text-sm">NOTCH FOAM</div>
+        <div class="btn-lce text-center py-2 text-sm">ISLANDS</div>
+        <div class="btn-lce text-center py-2 text-sm">OLD LIGHT</div>
+        <div class="btn-lce text-center py-2 text-sm">TU19 FIX</div>
+    </div>
+
+</body>
+</html>
